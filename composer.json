@@ -1,0 +1,37 @@
+{
+	"name": "phpdafruit/neopixel-php",
+	"description": "A PHP library for controlling NeoPixel LED strips using the phpixel extension.",
+	"type": "library",
+	"version": "0.1",
+	"license": "MIT",
+	"require": {
+        "php": "^8.3",
+        "ext-phpixel": "*",
+        "ext-sockets": "*"
+    },
+	"require-dev": {
+		"pestphp/pest": "^4.1",
+		"mockery/mockery": "^1.6"
+	},
+	"autoload": {
+		"psr-4": {
+			"PhpdaFruit\\NeoPixels\\": "src"
+		}
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
+    },
+	"config": {
+		"allow-plugins": {
+			"pestphp/pest-plugin": true
+		}
+	},
+	"scripts": {
+		"test": "pest",
+		"test:quiet": "pest --quiet",
+		"test:coverage": "pest --coverage"
+	},
+	"minimum-stability": "stable"
+}
