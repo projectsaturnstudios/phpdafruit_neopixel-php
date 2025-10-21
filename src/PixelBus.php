@@ -21,6 +21,8 @@ class PixelBus
         }
     }
 
+
+
     public function addPixelChannel(string $name, PixelChannel $channel): static
     {
         $this->pixel_sources[$name] = $channel;

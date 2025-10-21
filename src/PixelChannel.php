@@ -5,6 +5,8 @@ namespace Phpdafruit\NeoPixels;
 use NeoPixel;
 use PhpdaFruit\NeoPixels\Contracts\WS821x as WS821xContract;
 use PhpdaFruit\NeoPixels\Enums\NeoPixelType;
+use PhpdaFruit\NeoPixels\Enums\Animation;
+use PhpdaFruit\NeoPixels\AnimationFactory;
 
 class PixelChannel implements WS821xContract
 {
@@ -244,6 +246,35 @@ class PixelChannel implements WS821xContract
             usleep($delay);
         }
         
+        return $this;
+    }
+
+    /**
+     * Run an animation on this channel
+     *
+     * @param Animation $animation The animation to run
+     * @param int $duration_ms Duration in milliseconds
+     * @param array $options Animation-specific options
+     * @return static
+     * @throws \PhpdaFruit\NeoPixels\Exceptions\AnimationNotFoundException
+     */
+    public function animate(Animation $animation, int $duration_ms = 5000, array $options = []): static
+    {
+        $visualization = AnimationFactory::create($animation);
+
+        // Check compatibility
+        if (!$visualization->isCompatible($this)) {
+            throw new \RuntimeException(
+                "Animation '{$animation->getName()}' is not compatible with this channel type"
+            );
+        }
+
+        // Merge user options with defaults
+        $mergedOptions = array_merge($visualization->getDefaultOptions(), $options);
+
+        // Run the animation
+        $visualization->run($this, $duration_ms, $mergedOptions);
+
         return $this;
     }
 }

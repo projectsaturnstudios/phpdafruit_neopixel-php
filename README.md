@@ -91,6 +91,7 @@ $strip->clear()->show();
 - `reverse()` - Reverse pixel order
 - `fadeIn(int $duration_ms = 1000)` - Fade in effect
 - `fadeOut(int $duration_ms = 1000)` - Fade out effect
+- `animate(Animation $animation, int $duration_ms, array $options = [])` - Play built-in animations
 
 All methods that modify state return `$this` for method chaining.
 
@@ -270,6 +271,103 @@ Potential custom shapes include:
 - `Star` - Multi-point star configurations
 - `Square` - Four-corner arrangements
 - Any other LED configuration specific to your project
+
+## Animations
+
+The library includes **35 built-in animations** that can be played on any `PixelChannel` or device shape using the `animate()` method.
+
+### Quick Start
+
+```php
+use PhpdaFruit\NeoPixels\DeviceShapes\RGBStrip;
+use PhpdaFruit\NeoPixels\Enums\Animation;
+use PhpdaFruit\NeoPixels\AnimationRegistry;
+
+// Initialize animation system
+AnimationRegistry::initialize();
+
+$strip = new RGBStrip(30, '/dev/spidev0.0');
+$strip->begin();
+
+// Play a built-in animation
+$strip->animate(Animation::RAINBOW, 5000); // 5 seconds
+$strip->animate(Animation::FIRE_FLICKER, 10000, [
+    'intensity' => 0.9,
+    'cooling' => 60
+]);
+```
+
+### Available Animations
+
+The library includes animations in these categories:
+
+- **Basic Effects** (15): Static, Blink, Breathe, Wipe, Rainbow, Scan, Fade, and more
+- **Sparkle & Twinkle** (7): Twinkle, Sparkle, Sparkle Dark, Sparkle Plus, Strobe, Blink Rainbow
+- **Chase & Running** (9): Running, Running Color, Running Red/Blue, Larson Scanner, Theater Chase variants
+- **Fire & Heat** (1): Fire Flicker with realistic simulation
+- **Comet & Meteor** (2): Comet, Meteor Shower
+- **Fireworks** (1): Fireworks explosion effects  
+- **Wave & Motion** (2): Saw, Rain
+- **Physics** (2): Dissolve, Dissolve Random
+- **Gradient** (1): Smooth flowing gradients
+
+For complete documentation of all 35 animations with usage examples and customization options, see **[ANIMATIONS.md](ANIMATIONS.md)**.
+
+### Animation Architecture
+
+The animation system consists of:
+
+- **Animation Enum** (`PhpdaFruit\NeoPixels\Enums\Animation`) - Type-safe animation identifiers
+- **AnimationVisualization Interface** - Contract for animation implementations
+- **AnimationFactory** - Factory pattern for creating animations
+- **AnimationRegistry** - Central registration system
+- **Effect Traits** - Reusable logic (FadeEffect, ColorWheelEffect, TimingEffect, RandomEffect)
+
+### Custom Animations
+
+Create custom animations by implementing `AnimationVisualization`:
+
+```php
+use PhpdaFruit\NeoPixels\Contracts\Animations\Visualizations\AnimationVisualization;
+use PhpdaFruit\NeoPixels\Enums\Animation;
+use PhpdaFruit\NeoPixels\PixelChannel;
+
+class MyCustomVisualization implements AnimationVisualization
+{
+    public function run(PixelChannel $channel, int $duration_ms, array $options = []): void
+    {
+        // Your animation logic here
+    }
+
+    public function getAnimationType(): Animation
+    {
+        return Animation::CUSTOM;
+    }
+
+    public function getName(): string
+    {
+        return 'My Custom Animation';
+    }
+
+    public function getDefaultOptions(): array
+    {
+        return ['speed' => 100, 'color' => 0xFF0000];
+    }
+
+    public function isCompatible(PixelChannel $channel): bool
+    {
+        return true; // Or add specific requirements
+    }
+}
+```
+
+Register your custom animation:
+
+```php
+use PhpdaFruit\NeoPixels\AnimationFactory;
+
+AnimationFactory::register(Animation::CUSTOM, MyCustomVisualization::class);
+```
 
 ## Enums
 
@@ -486,4 +584,66 @@ For issues related to:
 - **This library**: Open an issue in this repository
 - **phpixel extension**: See the [phpixel repository](https://github.com/projectsaturnstudios/phpdafruit_phpixel_extension)
 - **Hardware setup**: Consult your device's SPI configuration documentation
+
+---
+
+## Changelog
+
+### v2.0.0 - Animation System Release (Current)
+
+**Major Features:**
+- **35 Built-in Animations** - Comprehensive animation library with 35 pre-built effects
+- **Animation System Architecture** - Factory pattern, registry, and visualization interfaces
+- **Effect Traits** - Reusable animation logic (FadeEffect, ColorWheelEffect, TimingEffect, RandomEffect)
+- **Animation Enum** - Type-safe animation identifiers with metadata
+- **RGBStrip Enhancements** - Added `flip()` method for reversed pixel order
+- **LaravelRGB Integration** - Full Laravel wrapper package (separate repository)
+
+**New Animations:**
+- Basic: Static, Blink, Breathe, Wipe, Wipe Random, Random Colors, Sweep, Dynamic, Colorloop, Rainbow, Scan, Scan Dual, Fade, Theater Chase, Theater Chase Rainbow
+- Sparkle: Twinkle, Sparkle, Sparkle Dark, Sparkle Plus, Strobe, Blink Rainbow
+- Chase/Running: Running, Running Color, Running Red/Blue, Running Random, Larson Scanner, Chase Flash, Chase Rainbow White, Chase Blackout, Chase Blackout Rainbow
+- Special: Fire Flicker, Comet, Meteor Shower, Fireworks, Saw, Rain, Dissolve, Dissolve Random, Gradient
+
+**API Additions:**
+- `PixelChannel::animate(Animation $animation, int $duration_ms, array $options = [])` - Play animations
+- `RGBStrip::flip()` - Toggle pixel reversal for upside-down mounting
+- `RGBStrip::setReversed(bool $reversed)` - Explicitly set pixel order
+- `RGBStrip::isReversed()` - Check if pixels are reversed
+- `AnimationRegistry::initialize()` - Initialize animation system
+- `AnimationFactory::register()` - Register custom animations
+
+**Documentation:**
+- Added ANIMATIONS.md with complete animation reference
+- Updated README with Animations section
+- Enhanced examples and use cases
+
+**Breaking Changes:**
+- None - fully backward compatible with v1.x
+
+---
+
+### v1.0.0 - Initial Release
+
+**Core Features:**
+- Object-oriented API for NeoPixel control
+- PixelChannel abstraction for single LED devices
+- PixelBus for multi-device management
+- Device shapes: SingleDiode, DoubleDots, RGBStrip
+- Type-safe enums: NeoPixelType, SPIDevice
+- Fluent/chainable method interface
+- Comprehensive Pest test suite
+- 5 example scripts demonstrating features
+
+**Supported Hardware:**
+- Raspberry Pi 5 (and earlier models)
+- NVIDIA Jetson Orin Nano
+- Any embedded Linux device with SPI support
+
+**Requirements:**
+- PHP 8.3+
+- phpixel extension
+- SPI device nodes (/dev/spidev*)
+
+For a complete feature list and usage examples from v1.0.0, see the Device Shapes and Examples sections above.
 

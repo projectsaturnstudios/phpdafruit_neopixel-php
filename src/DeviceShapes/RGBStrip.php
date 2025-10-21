@@ -10,12 +10,88 @@ use PhpdaFruit\NeoPixels\Enums\NeoPixelType;
  */
 class RGBStrip extends PixelChannel
 {
+    /**
+     * Whether to reverse pixel indexing (useful for upside-down mounting)
+     */
+    protected bool $reverse_pixels = false;
+
     public function __construct(
         int $num_pixels,
         string $device_path = '/dev/spidev0.0',
         NeoPixelType $neopixel_type = NeoPixelType::RGB
     ) {
         parent::__construct($num_pixels, $device_path, $neopixel_type);
+    }
+
+    /**
+     * Flip/reverse the pixel order (toggle)
+     * Useful when strip is mounted upside down
+     *
+     * @return static
+     */
+    public function flip(): static
+    {
+        $this->reverse_pixels = !$this->reverse_pixels;
+        return $this;
+    }
+
+    /**
+     * Set whether pixels should be reversed
+     *
+     * @param bool $reversed
+     * @return static
+     */
+    public function setReversed(bool $reversed): static
+    {
+        $this->reverse_pixels = $reversed;
+        return $this;
+    }
+
+    /**
+     * Check if pixels are reversed
+     *
+     * @return bool
+     */
+    public function isReversed(): bool
+    {
+        return $this->reverse_pixels;
+    }
+
+    /**
+     * Translate pixel index if reversed
+     *
+     * @param int $pixel
+     * @return int
+     */
+    protected function translatePixelIndex(int $pixel): int
+    {
+        if ($this->reverse_pixels) {
+            return $this->getPixelCount() - 1 - $pixel;
+        }
+        return $pixel;
+    }
+
+    /**
+     * Override setPixelColorHex to handle reversal
+     *
+     * @param int $pixel
+     * @param int $color
+     * @return void
+     */
+    public function setPixelColorHex(int $pixel, int $color): void
+    {
+        parent::setPixelColorHex($this->translatePixelIndex($pixel), $color);
+    }
+
+    /**
+     * Override getPixelColor to handle reversal
+     *
+     * @param int $pixel
+     * @return int
+     */
+    public function getPixelColor(int $pixel): int
+    {
+        return parent::getPixelColor($this->translatePixelIndex($pixel));
     }
 
     /**
@@ -226,7 +302,7 @@ class RGBStrip extends PixelChannel
         
         for ($cycle = 0; $cycle < $cycles * 256; $cycle++) {
             for ($i = 0; $i < $count; $i++) {
-                $color = $this->wheel((($i * 256 / $count) + $cycle) & 255);
+                $color = $this->wheel((int)((($i * 256 / $count) + $cycle)) & 255);
                 $this->setPixelColorHex($i, $color);
             }
             $this->show();
